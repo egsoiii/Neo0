@@ -1,17 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl, type InsertFile } from "@shared/routes";
+import { api } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
+import { type InsertFile, type UpdateFile } from "@shared/schema";
 
 export function useFiles() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: files, isLoading, isError } = useQuery({
+  const { data: files, isLoading } = useQuery({
     queryKey: [api.files.list.path],
     queryFn: async () => {
       const res = await fetch(api.files.list.path);
+      if (res.status === 401) return [];
       if (!res.ok) throw new Error("Failed to fetch files");
-      return api.files.list.responses[200].parse(await res.json());
+      return res.json();
     },
   });
 
@@ -22,66 +24,60 @@ export function useFiles() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
-      if (!res.ok) {
-        if (res.status === 400) {
-          const error = api.files.upload.responses[400].parse(await res.json());
-          throw new Error(error.message || "Invalid file data");
-        }
-        throw new Error("Failed to upload file");
-      }
-      return api.files.upload.responses[201].parse(await res.json());
+      if (!res.ok) throw new Error("Upload failed");
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.files.list.path] });
-      toast({
-        title: "File Published",
-        description: "Your file is now live on your site.",
-      });
+      toast({ title: "File created", description: "Your file has been published." });
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: error.message,
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: UpdateFile }) => {
+      const res = await fetch(api.files.update.path.replace(":id", String(id)), {
+        method: api.files.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
+      if (!res.ok) throw new Error("Edit failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.files.list.path] });
+      toast({ title: "File updated", description: "Changes saved." });
+    },
+    onError: (error) => {
+      toast({ variant: "destructive", title: "Error", description: error.message });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const url = buildUrl(api.files.delete.path, { id });
-      const res = await fetch(url, {
+      const res = await fetch(api.files.delete.path.replace(":id", String(id)), {
         method: api.files.delete.method,
       });
-
-      if (!res.ok) {
-        if (res.status === 404) throw new Error("File not found");
-        throw new Error("Failed to delete file");
-      }
+      if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.files.list.path] });
-      toast({
-        title: "File Deleted",
-        description: "The file has been permanently removed.",
-      });
+      toast({ title: "File deleted" });
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Delete Failed",
-        description: error.message,
-      });
+      toast({ variant: "destructive", title: "Error", description: error.message });
     },
   });
 
   return {
     files,
     isLoading,
-    isError,
     uploadFile: uploadMutation.mutate,
     isUploading: uploadMutation.isPending,
+    editFile: editMutation.mutate,
+    isEditing: editMutation.isPending,
     deleteFile: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
   };
