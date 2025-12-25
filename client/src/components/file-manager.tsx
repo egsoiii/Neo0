@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Folder, File, Plus, Trash2, Edit2, Loader2, Upload, ChevronLeft } from "lucide-react";
+import { Folder, File, Plus, Trash2, Edit2, Loader2, Upload, ChevronLeft, Type } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +47,8 @@ export function FileManager() {
   const [renameName, setRenameName] = useState("");
   const [editFileState, setEditFileState] = useState<EditFileState | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const currentFolderData = currentFolderId ? folders?.find(f => f.id === currentFolderId) : null;
 
   const handleCreateFile = () => {
     if (newFileName.trim() && newFileContent.trim()) {
@@ -118,25 +120,33 @@ export function FileManager() {
     }
   };
 
-  const filesInFolder = files?.filter(f => !f.folderId) || [];
-  const foldersInFolder = folders || [];
+  const filesInCurrentFolder = currentFolderId 
+    ? files?.filter(f => f.folderId === currentFolderId) || []
+    : files?.filter(f => !f.folderId) || [];
+
+  const foldersDisplay = folders || [];
 
   return (
     <div className="space-y-6 w-full">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">Home</h1>
-          {currentFolderId && (
-            <button
-              onClick={() => setCurrentFolderId(null)}
-              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 px-3 py-2 rounded hover:bg-blue-50 dark:hover:bg-blue-950/30"
-              data-testid="button-back-folder"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </button>
+          {currentFolderData && (
+            <div className="flex items-center gap-2">
+              <ChevronLeft className="w-5 h-5 text-gray-400" />
+              <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">{currentFolderData.name}</span>
+            </div>
           )}
         </div>
+        {currentFolderId && (
+          <button
+            onClick={() => setCurrentFolderId(null)}
+            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 px-3 py-2 rounded hover:bg-blue-50 dark:hover:bg-blue-950/30"
+            data-testid="button-back-folder"
+          >
+            Back to Home
+          </button>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -153,7 +163,12 @@ export function FileManager() {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Create New File</DialogTitle>
-              <DialogDescription>Enter a filename and content for your new file.</DialogDescription>
+              <DialogDescription>
+                {currentFolderData 
+                  ? `Creating file in folder "${currentFolderData.name}"`
+                  : "Enter a filename and content for your new file."
+                }
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Input
@@ -245,17 +260,17 @@ export function FileManager() {
       </div>
 
       {files && folders !== undefined ? (
-        filesInFolder.length === 0 && foldersInFolder.length === 0 ? (
+        filesInCurrentFolder.length === 0 && (!currentFolderId && foldersDisplay.length === 0) ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-base">No files or folders yet. Create one to get started!</p>
           </div>
         ) : (
           <div className="space-y-2 w-full">
-            {foldersInFolder.length > 0 && (
+            {!currentFolderId && foldersDisplay.length > 0 && (
               <div>
                 <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Folders</h2>
                 <div className="space-y-2">
-                  {foldersInFolder.map((folder) => (
+                  {foldersDisplay.map((folder) => (
                     <div 
                       key={`folder-${folder.id}`} 
                       className="flex items-center justify-between gap-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-950/30 transition-colors border border-amber-200/50 dark:border-amber-900/30" 
@@ -276,8 +291,9 @@ export function FileManager() {
                           }}
                           className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
                           data-testid={`button-rename-folder-${folder.id}`}
+                          title="Rename"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <Type className="w-3 h-3" />
                         </button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -312,11 +328,11 @@ export function FileManager() {
               </div>
             )}
 
-            {filesInFolder.length > 0 && (
+            {filesInCurrentFolder.length > 0 && (
               <div>
                 <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Files</h2>
                 <div className="space-y-2">
-                  {filesInFolder.map((file) => (
+                  {filesInCurrentFolder.map((file) => (
                     <div 
                       key={`file-${file.id}`} 
                       className="flex items-center justify-between gap-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/30 transition-colors border border-blue-200/50 dark:border-blue-900/30" 
@@ -337,6 +353,7 @@ export function FileManager() {
                           }}
                           className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
                           data-testid={`button-edit-file-${file.id}`}
+                          title="Edit Content"
                         >
                           <Edit2 className="w-3 h-3" />
                         </button>
@@ -349,7 +366,7 @@ export function FileManager() {
                           data-testid={`button-rename-file-${file.id}`}
                           title="Rename"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <Type className="w-3 h-3" />
                         </button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -383,6 +400,10 @@ export function FileManager() {
                 </div>
               </div>
             )}
+
+            {filesInCurrentFolder.length === 0 && currentFolderId && (
+              <p className="text-muted-foreground text-sm py-6 text-center">No files in this folder yet.</p>
+            )}
           </div>
         )
       ) : (
@@ -394,7 +415,7 @@ export function FileManager() {
       <Dialog open={isEditFileOpen} onOpenChange={setIsEditFileOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit File</DialogTitle>
+            <DialogTitle>Edit File Content</DialogTitle>
             <DialogDescription>Editing: <span className="font-semibold">{editFileState?.filename}</span></DialogDescription>
           </DialogHeader>
           {editFileState && (
