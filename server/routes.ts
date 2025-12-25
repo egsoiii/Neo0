@@ -158,6 +158,20 @@ export async function registerRoutes(
   });
 
   // === Public File Serving ===
+  app.get("/:username/:folder/:filename", async (req, res, next) => {
+    const { username, folder, filename } = req.params;
+    if (username === "api" || username === "assets") return next();
+
+    const user = await storage.getUserByUsername(username);
+    if (!user) return next();
+
+    const file = await storage.getFileByFolderAndPath(user.id, folder, filename);
+    if (!file) return next();
+
+    res.setHeader("Content-Type", file.mimeType);
+    res.send(file.content);
+  });
+
   app.get("/:username/:filename", async (req, res, next) => {
     const { username, filename } = req.params;
     if (username === "api" || username === "assets") return next();

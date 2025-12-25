@@ -20,6 +20,7 @@ export interface IStorage {
   getFiles(userId: number): Promise<File[]>;
   getFile(id: number, userId: number): Promise<File | undefined>;
   getFileByPath(userId: number, filename: string): Promise<File | undefined>;
+  getFileByFolderAndPath(userId: number, folderName: string, filename: string): Promise<File | undefined>;
   createFile(userId: number, file: InsertFile): Promise<File>;
   updateFile(id: number, userId: number, updates: UpdateFile): Promise<File>;
   deleteFile(id: number, userId: number): Promise<void>;
@@ -79,7 +80,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFileByPath(userId: number, filename: string): Promise<File | undefined> {
-    const [file] = await db.select().from(files).where(and(eq(files.userId, userId), eq(files.filename, filename)));
+    const [file] = await db.select().from(files).where(and(eq(files.userId, userId), eq(files.filename, filename), eq(files.folderId, null)));
+    return file;
+  }
+
+  async getFileByFolderAndPath(userId: number, folderName: string, filename: string): Promise<File | undefined> {
+    const folder = await db.select().from(folders).where(and(eq(folders.userId, userId), eq(folders.name, folderName)));
+    if (!folder || folder.length === 0) return undefined;
+    const [file] = await db.select().from(files).where(and(eq(files.userId, userId), eq(files.filename, filename), eq(files.folderId, folder[0].id)));
     return file;
   }
 
