@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Folder, File, Plus, Trash2, Edit2, Loader2, FolderOpen, Upload, ChevronRight } from "lucide-react";
+import { Folder, File, Plus, Trash2, Edit2, Loader2, Upload, ChevronLeft } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -118,250 +118,271 @@ export function FileManager() {
     }
   };
 
-  const currentFolderName = currentFolderId 
-    ? folders?.find(f => f.id === currentFolderId)?.name 
-    : null;
-  
   const filesInFolder = files?.filter(f => !f.folderId) || [];
-  const foldersInFolder = folders?.filter(f => f.id === currentFolderId || (currentFolderId === null && !f.id)) || folders || [];
+  const foldersInFolder = folders || [];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold mb-6">Home</h1>
-        
-        {currentFolderName && (
-          <button
-            onClick={() => setCurrentFolderId(null)}
-            className="text-sm text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-1"
-            data-testid="button-back-folder"
-          >
-            <ChevronRight className="w-4 h-4 rotate-180" />
-            Back to Home
-          </button>
-        )}
-
-        <div className="flex flex-wrap gap-3 mb-8">
-          <Dialog open={isCreateFileOpen} onOpenChange={setIsCreateFileOpen}>
-            <Button 
-              onClick={() => setIsCreateFileOpen(true)} 
-              className="bg-red-500 hover:bg-red-600 text-white rounded-full px-6 py-5 font-semibold whitespace-nowrap"
-              data-testid="button-new-file"
+    <div className="space-y-6 w-full">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">Home</h1>
+          {currentFolderId && (
+            <button
+              onClick={() => setCurrentFolderId(null)}
+              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 px-3 py-2 rounded hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              data-testid="button-back-folder"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              New File
-            </Button>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Create New File</DialogTitle>
-                <DialogDescription>Enter a filename and content for your new file.</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Filename (e.g., index.html)"
-                  value={newFileName}
-                  onChange={(e) => setNewFileName(e.target.value)}
-                  data-testid="input-new-filename"
-                />
-                <Textarea
-                  placeholder="File content"
-                  value={newFileContent}
-                  onChange={(e) => setNewFileContent(e.target.value)}
-                  data-testid="textarea-file-content"
-                  className="min-h-32"
-                />
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateFileOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreateFile} disabled={isUploading || !newFileName.trim() || !newFileContent.trim()}>
-                  {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-            <Button 
-              onClick={() => setIsCreateFolderOpen(true)} 
-              className="bg-red-500 hover:bg-red-600 text-white rounded-full px-6 py-5 font-semibold whitespace-nowrap"
-              data-testid="button-new-folder"
-            >
-              <FolderOpen className="w-5 h-5 mr-2" />
-              New Folder
-            </Button>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Folder</DialogTitle>
-                <DialogDescription>Enter a name for your new folder.</DialogDescription>
-              </DialogHeader>
-              <Input
-                placeholder="Folder name"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                data-testid="input-folder-name"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreateFolder();
-                }}
-              />
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateFolderOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreateFolder} disabled={isCreating || !newFolderName.trim()}>
-                  {isCreating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Button 
-            onClick={() => fileInputRef.current?.click()}
-            className="bg-red-500 hover:bg-red-600 text-white rounded-full px-6 py-5 font-semibold whitespace-nowrap"
-            disabled={isUploading}
-            data-testid="button-upload"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="w-5 h-5 mr-2" />
-                Upload
-              </>
-            )}
-          </Button>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileUpload}
-            className="hidden"
-            data-testid="input-file-upload"
-            accept=".html,.css,.js,.txt,.md"
-          />
+              <ChevronLeft className="w-4 h-4" />
+              Back
+            </button>
+          )}
         </div>
       </div>
 
-      {files && folders ? (
+      <div className="flex flex-wrap gap-2">
+        <Dialog open={isCreateFileOpen} onOpenChange={setIsCreateFileOpen}>
+          <Button 
+            onClick={() => setIsCreateFileOpen(true)} 
+            size="sm"
+            className="bg-red-500 hover:bg-red-600 text-white"
+            data-testid="button-new-file"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            New File
+          </Button>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Create New File</DialogTitle>
+              <DialogDescription>Enter a filename and content for your new file.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                placeholder="Filename (e.g., index.html)"
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                data-testid="input-new-filename"
+              />
+              <Textarea
+                placeholder="File content"
+                value={newFileContent}
+                onChange={(e) => setNewFileContent(e.target.value)}
+                data-testid="textarea-file-content"
+                className="min-h-40"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateFileOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateFile} disabled={isUploading || !newFileName.trim() || !newFileContent.trim()}>
+                {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
+          <Button 
+            onClick={() => setIsCreateFolderOpen(true)} 
+            size="sm"
+            className="bg-red-500 hover:bg-red-600 text-white"
+            data-testid="button-new-folder"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            New Folder
+          </Button>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Folder</DialogTitle>
+              <DialogDescription>Enter a name for your new folder.</DialogDescription>
+            </DialogHeader>
+            <Input
+              placeholder="Folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              data-testid="input-folder-name"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreateFolder();
+              }}
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateFolderOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateFolder} disabled={isCreating || !newFolderName.trim()}>
+                {isCreating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Button 
+          onClick={() => fileInputRef.current?.click()}
+          size="sm"
+          className="bg-red-500 hover:bg-red-600 text-white"
+          disabled={isUploading}
+          data-testid="button-upload"
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              Uploading
+            </>
+          ) : (
+            <>
+              <Upload className="w-4 h-4 mr-1" />
+              Upload
+            </>
+          )}
+        </Button>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileUpload}
+          className="hidden"
+          data-testid="input-file-upload"
+          accept=".html,.css,.js,.txt,.md"
+        />
+      </div>
+
+      {files && folders !== undefined ? (
         filesInFolder.length === 0 && foldersInFolder.length === 0 ? (
-          <p className="text-muted-foreground py-12 text-center text-lg">No files or folders yet. Create one to get started!</p>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-base">No files or folders yet. Create one to get started!</p>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {foldersInFolder.map((folder) => (
-              <div key={`folder-${folder.id}`} className="flex items-center justify-between gap-4 p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-colors group" data-testid={`item-folder-${folder.id}`}>
-                <button
-                  onClick={() => setCurrentFolderId(folder.id)}
-                  className="flex items-center gap-4 flex-1 min-w-0 text-left hover:opacity-75"
-                >
-                  <Folder className="w-8 h-8 text-amber-600 flex-shrink-0" />
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-base truncate" data-testid={`text-folder-name-${folder.id}`}>{folder.name}</span>
-                </button>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => {
-                      setRenameState({ type: "folder", id: folder.id, currentName: folder.name });
-                      setRenameName(folder.name);
-                    }}
-                    className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
-                    data-testid={`button-rename-folder-${folder.id}`}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Rename
-                  </button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30" data-testid={`button-delete-folder-${folder.id}`}>
-                        <Trash2 className="w-4 h-4" />
-                        Delete
+          <div className="space-y-2 w-full">
+            {foldersInFolder.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Folders</h2>
+                <div className="space-y-2">
+                  {foldersInFolder.map((folder) => (
+                    <div 
+                      key={`folder-${folder.id}`} 
+                      className="flex items-center justify-between gap-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-950/30 transition-colors border border-amber-200/50 dark:border-amber-900/30" 
+                      data-testid={`item-folder-${folder.id}`}
+                    >
+                      <button
+                        onClick={() => setCurrentFolderId(folder.id)}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80"
+                      >
+                        <Folder className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+                        <span className="font-medium text-gray-800 dark:text-gray-200 truncate text-sm" data-testid={`text-folder-name-${folder.id}`}>{folder.name}</span>
                       </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Folder</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{folder.name}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteFolder(folder.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          disabled={isDeleting}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setRenameState({ type: "folder", id: folder.id, currentName: folder.name });
+                            setRenameName(folder.name);
+                          }}
+                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                          data-testid={`button-rename-folder-${folder.id}`}
                         >
-                          {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30" data-testid={`button-delete-folder-${folder.id}`}>
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{folder.name}"?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteFolder(folder.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                disabled={isDeleting}
+                              >
+                                {isDeleting && <Loader2 className="w-3 h-3 mr-2 animate-spin" />}
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-            {filesInFolder.map((file) => (
-              <div key={`file-${file.id}`} className="flex items-center justify-between gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/40 transition-colors group" data-testid={`item-file-${file.id}`}>
-                <button
-                  onClick={() => user && window.open(`/${user.username}/${file.filename}`, '_blank')}
-                  className="flex items-center gap-4 flex-1 min-w-0 text-left hover:opacity-75"
-                >
-                  <File className="w-8 h-8 text-blue-600 flex-shrink-0" />
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-base truncate" data-testid={`text-file-name-${file.id}`}>{file.filename}</span>
-                </button>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => {
-                      setEditFileState({ id: file.id, filename: file.filename, content: file.content });
-                      setIsEditFileOpen(true);
-                    }}
-                    className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
-                    data-testid={`button-edit-file-${file.id}`}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setRenameState({ type: "file", id: file.id, currentName: file.filename });
-                      setRenameName(file.filename);
-                    }}
-                    className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
-                    data-testid={`button-rename-file-${file.id}`}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Rename
-                  </button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30" data-testid={`button-delete-file-${file.id}`}>
-                        <Trash2 className="w-4 h-4" />
-                        Delete
+            )}
+
+            {filesInFolder.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Files</h2>
+                <div className="space-y-2">
+                  {filesInFolder.map((file) => (
+                    <div 
+                      key={`file-${file.id}`} 
+                      className="flex items-center justify-between gap-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/30 transition-colors border border-blue-200/50 dark:border-blue-900/30" 
+                      data-testid={`item-file-${file.id}`}
+                    >
+                      <button
+                        onClick={() => user && window.open(`/${user.username}/${file.filename}`, '_blank')}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80"
+                      >
+                        <File className="w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0" />
+                        <span className="font-medium text-gray-800 dark:text-gray-200 truncate text-sm" data-testid={`text-file-name-${file.id}`}>{file.filename}</span>
                       </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete File</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{file.filename}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteFileAction(file.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          disabled={isDeleting}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditFileState({ id: file.id, filename: file.filename, content: file.content });
+                            setIsEditFileOpen(true);
+                          }}
+                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                          data-testid={`button-edit-file-${file.id}`}
                         >
-                          {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRenameState({ type: "file", id: file.id, currentName: file.filename });
+                            setRenameName(file.filename);
+                          }}
+                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                          data-testid={`button-rename-file-${file.id}`}
+                          title="Rename"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30" data-testid={`button-delete-file-${file.id}`}>
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete File</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{file.filename}"?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteFileAction(file.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                disabled={isDeleting}
+                              >
+                                {isDeleting && <Loader2 className="w-3 h-3 mr-2 animate-spin" />}
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         )
       ) : (
@@ -371,17 +392,17 @@ export function FileManager() {
       )}
 
       <Dialog open={isEditFileOpen} onOpenChange={setIsEditFileOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit File: {editFileState?.filename}</DialogTitle>
-            <DialogDescription>Edit the content of your file.</DialogDescription>
+            <DialogTitle>Edit File</DialogTitle>
+            <DialogDescription>Editing: <span className="font-semibold">{editFileState?.filename}</span></DialogDescription>
           </DialogHeader>
           {editFileState && (
             <Textarea
               value={editFileState.content}
               onChange={(e) => setEditFileState({ ...editFileState, content: e.target.value })}
               data-testid="textarea-edit-content"
-              className="font-mono min-h-64 text-sm"
+              className="font-mono min-h-80 text-xs"
             />
           )}
           <DialogFooter>
