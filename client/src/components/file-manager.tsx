@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Folder, File, Plus, Trash2, Edit2, Loader2, Upload, ChevronLeft, Type } from "lucide-react";
+import { Folder, File, Plus, Trash2, Edit2, Loader2, Upload, ChevronLeft, PencilLine } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +52,12 @@ export function FileManager() {
 
   const handleCreateFile = () => {
     if (newFileName.trim() && newFileContent.trim()) {
-      uploadFile({ filename: newFileName, content: newFileContent, mimeType: "text/html" }, {
+      uploadFile({ 
+        filename: newFileName, 
+        content: newFileContent, 
+        mimeType: "text/html",
+        folderId: currentFolderId || undefined
+      }, {
         onSuccess: () => {
           setNewFileName("");
           setNewFileContent("");
@@ -79,7 +84,12 @@ export function FileManager() {
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target?.result as string;
-        uploadFile({ filename: file.name, content, mimeType: file.type || "text/html" }, {
+        uploadFile({ 
+          filename: file.name, 
+          content, 
+          mimeType: file.type || "text/html",
+          folderId: currentFolderId || undefined
+        }, {
           onSuccess: () => {
             if (fileInputRef.current) fileInputRef.current.value = "";
           },
@@ -293,7 +303,7 @@ export function FileManager() {
                           data-testid={`button-rename-folder-${folder.id}`}
                           title="Rename"
                         >
-                          <Type className="w-3 h-3" />
+                          <Edit2 className="w-3 h-3" />
                         </button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -355,7 +365,7 @@ export function FileManager() {
                           data-testid={`button-edit-file-${file.id}`}
                           title="Edit Content"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <PencilLine className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => {
@@ -366,7 +376,7 @@ export function FileManager() {
                           data-testid={`button-rename-file-${file.id}`}
                           title="Rename"
                         >
-                          <Type className="w-3 h-3" />
+                          <Edit2 className="w-3 h-3" />
                         </button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

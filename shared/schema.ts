@@ -38,6 +38,9 @@ export const insertFileSchema = createInsertSchema(files).pick({
   filename: true,
   content: true,
   mimeType: true,
+  folderId: true,
+}).extend({
+  folderId: z.number().optional(),
 });
 
 export const updateFileSchema = z.object({
