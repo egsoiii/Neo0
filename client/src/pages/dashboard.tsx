@@ -16,6 +16,7 @@ import { Loader2, FileCode, Plus, Trash2, ExternalLink, Code2 } from "lucide-rea
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
+import { FileManager } from "@/components/file-manager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +47,8 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <FileManager />
+        <div className="mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-bold font-display mb-2">
               Hello, <span className="text-primary">{user.username}</span>
