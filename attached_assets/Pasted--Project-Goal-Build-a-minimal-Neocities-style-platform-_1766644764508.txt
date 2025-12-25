@@ -1,0 +1,158 @@
+
+> **Project Goal:** Build a minimal Neocities-style platform using Cloudflare services, free-tier friendly, with path-based URLs like `mysite.pages.dev/userUsername`. Users can sign up, log in, and upload HTML/CSS/JS files that are stored in Cloudflare R2 and served dynamically. Backend logic runs on Cloudflare Workers. Metadata (user accounts, uploaded file list) is stored in Cloudflare D1 (SQLite). Focus on **security, persistence, and correct routing**.
+
+---
+
+### **Step-by-step details to include**
+
+#### 1️⃣ Folder Structure
+
+```
+project/
+├─ frontend/              # Cloudflare Pages site
+│   ├─ index.html         # Homepage + login/signup UI
+│   ├─ signup.html
+│   ├─ dashboard.html     # User dashboard for uploads
+│   ├─ style.css
+│   └─ main.js            # Handles login, signup, file uploads
+├─ workers/               # Cloudflare Worker backend
+│   ├─ worker.js          # Main routing & API
+│   └─ package.json
+├─ README.md
+```
+
+---
+
+#### 2️⃣ Cloudflare Pages (Frontend)
+
+**Pages required:**
+
+* Homepage with login/signup forms
+* Dashboard with file upload form
+* JS handles calling Worker APIs (`/api/signup`, `/api/login`, `/api/upload`)
+
+**Security:**
+
+* Only logged-in users can upload
+* Basic token-based auth stored in memory or cookie (JWT preferred)
+
+**Example features:**
+
+* On login, redirect to:
+
+  ```
+  /dashboard?user=userUsername
+  ```
+* Dashboard shows list of uploaded files
+* Upload form sends POST request to Worker
+
+---
+
+#### 3️⃣ Cloudflare Worker (Backend)
+
+**worker.js responsibilities:**
+
+1. **Routing:**
+
+   * `/api/signup` → Create user in D1
+   * `/api/login` → Validate user, return token
+   * `/api/upload` → Auth check → Save file to R2 under `userUsername/filename`
+   * `/<userUsername>/<file>` → Serve file from R2
+
+2. **Auth & Security:**
+
+   * Check JWT token on uploads
+   * Sanitize file names (no `../`)
+   * Limit upload types: `html, css, js, png, jpg, gif`
+   * Limit file size (e.g., 2MB per file)
+
+3. **R2 integration:**
+
+   * Save uploaded files to bucket:
+
+     ```
+     bucket/userUsername/filename
+     ```
+   * Serve files with correct content-type
+   * Cache static files for speed
+
+4. **D1 integration:**
+
+   * Table `users(username TEXT PRIMARY KEY, password_hash TEXT)`
+   * Table `files(username TEXT, filename TEXT, uploaded_at TIMESTAMP)`
+   * Store metadata, not actual files
+
+5. **Path-based serving:**
+
+   ```
+   GET /alice/index.html → fetch R2 bucket/alice/index.html
+   GET /bob/style.css → fetch R2 bucket/bob/style.css
+   ```
+
+   * Default to `index.html` if file not specified
+
+---
+
+#### 4️⃣ Edge Cases & Security
+
+* Reject uploads for non-existing users
+* Prevent overwriting other users’ files
+* Sanitize HTML/JS if you allow public display
+* Rate-limit uploads (avoid spam)
+* Default 404 page if file not found
+
+---
+
+#### 5️⃣ Deployment Notes
+
+* Deploy **frontend** to Cloudflare Pages
+* Deploy **worker.js** to Cloudflare Worker (connected to Pages)
+* Create **R2 bucket** (free tier 10GB)
+* Create **D1 database** (SQLite)
+* Worker should have access to R2 + D1 via bindings in `wrangler.toml`
+
+**wrangler.toml example:**
+
+```toml
+name = "neocities-clone-worker"
+type = "javascript"
+account_id = "YOUR_ACCOUNT_ID"
+workers_dev = true
+
+[env.production]
+route = "mysite.pages.dev/*"
+zone_id = "YOUR_ZONE_ID"
+
+[[r2_buckets]]
+binding = "USER_FILES"
+bucket_name = "user-files"
+preview_bucket_name = "user-files-preview"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "neocities_clone"
+```
+
+---
+
+#### 6️⃣ Minimal MVP Feature List
+
+1. User signup/login
+2. Upload HTML/CSS/JS files
+3. Serve files at `mysite.pages.dev/userUsername/filename`
+4. Metadata stored in D1
+5. Files stored in R2
+6. Path-based routing (no subdomains)
+7. Basic security checks
+
+---
+
+#### 7️⃣ Optional Enhancements (if Replit Agent can handle)
+
+* Delete files
+* Rename files
+* Upload images for dashboard
+* Limit storage per user
+* Show list of uploaded files in dashboard
+
+---
