@@ -136,6 +136,16 @@ export function FileManager() {
 
   const foldersDisplay = folders || [];
 
+  const getFilePath = (file: typeof files[0]) => {
+    if (file.folderId && folders) {
+      const folder = folders.find(f => f.id === file.folderId);
+      if (folder) {
+        return `/${user?.username}/${folder.name}/${file.filename}`;
+      }
+    }
+    return `/${user?.username}/${file.filename}`;
+  };
+
   return (
     <div className="space-y-6 w-full">
       <div className="flex items-center justify-between">
@@ -349,7 +359,7 @@ export function FileManager() {
                       data-testid={`item-file-${file.id}`}
                     >
                       <button
-                        onClick={() => user && window.open(`/${user.username}/${file.filename}`, '_blank')}
+                        onClick={() => user && window.open(getFilePath(file), '_blank')}
                         className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80"
                       >
                         <File className="w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0" />
