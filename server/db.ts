@@ -1,14 +1,10 @@
 import mongoose from "mongoose";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Use MongoDB connection string.",
-  );
-}
+const MONGODB_URI = "mongodb+srv://saminurmondal12:gWvCJXujWrJ81v27@cluster0.hsu4l0a.mongodb.net/neocities?retryWrites=true&w=majority";
 
 export async function connectDB() {
   try {
-    await mongoose.connect(process.env.DATABASE_URL!);
+    await mongoose.connect(MONGODB_URI);
     console.log("Connected to MongoDB");
   } catch (err) {
     console.error("Failed to connect to MongoDB:", err);
