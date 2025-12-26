@@ -58,8 +58,7 @@ export async function registerRoutes(
   // === Folder Management ===
   app.get(api.folders.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const parentFolderId = req.query.parentFolderId ? parseInt(req.query.parentFolderId as string) : undefined;
-    const userFolders = await storage.getFolders(req.user!.id, parentFolderId);
+    const userFolders = await storage.getFolders(req.user!.id);
     res.json(userFolders);
   });
 
