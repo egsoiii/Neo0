@@ -9,13 +9,21 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: [api.auth.me.path],
     queryFn: async () => {
-      const res = await fetch(api.auth.me.path);
-      if (res.status === 401) return null;
+      const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      if (!token) return null;
+      
+      const res = await fetch(api.auth.me.path, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("auth_token");
+        return null;
+      }
       if (!res.ok) throw new Error("Failed to fetch user");
       return api.auth.me.responses[200].parse(await res.json());
     },
     retry: false,
-    staleTime: 0, // Always check auth status
+    staleTime: 0,
   });
 
   const loginMutation = useMutation({
@@ -32,10 +40,15 @@ export function useAuth() {
         }
         throw new Error("Login failed");
       }
-      return api.auth.login.responses[200].parse(await res.json());
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
+      return api.auth.login.responses[200].parse(data);
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([api.auth.me.path], data);
+      const { token, ...user } = data as any;
+      queryClient.setQueryData([api.auth.me.path], user);
       toast({
         title: "Welcome back!",
         description: `Logged in as ${data.username}`,
@@ -65,14 +78,15 @@ export function useAuth() {
         }
         throw new Error("Registration failed");
       }
-      return api.auth.register.responses[201].parse(await res.json());
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
+      return api.auth.register.responses[201].parse(data);
     },
     onSuccess: (data) => {
-      // Auto login after register isn't strictly standard but nice UX, 
-      // here we just log them in on the client side if the backend set the cookie
-      // Assuming backend sets session on register too. If not, redirect to login.
-      // Based on typical express-session + passport, register usually also logs in.
-      queryClient.setQueryData([api.auth.me.path], data);
+      const { token, ...user } = data as any;
+      queryClient.setQueryData([api.auth.me.path], user);
       toast({
         title: "Account created",
         description: "Welcome to your new digital home.",
@@ -93,6 +107,7 @@ export function useAuth() {
         method: api.auth.logout.method,
       });
       if (!res.ok) throw new Error("Logout failed");
+      localStorage.removeItem("auth_token");
     },
     onSuccess: () => {
       queryClient.setQueryData([api.auth.me.path], null);
