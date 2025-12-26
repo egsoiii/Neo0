@@ -52,8 +52,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getFolders(userId: number): Promise<Folder[]> {
-    return await db.select().from(folders).where(eq(folders.userId, userId));
+  async getFolders(userId: number, parentFolderId?: number): Promise<Folder[]> {
+    if (parentFolderId) {
+      return await db.select().from(folders).where(and(eq(folders.userId, userId), eq(folders.parentFolderId, parentFolderId)));
+    }
+    return await db.select().from(folders).where(and(eq(folders.userId, userId), eq(folders.parentFolderId, null)));
   }
 
   async createFolder(userId: number, insertFolder: InsertFolder): Promise<Folder> {

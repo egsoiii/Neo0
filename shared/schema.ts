@@ -11,6 +11,7 @@ export const users = pgTable("users", {
 export const folders = pgTable("folders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  parentFolderId: integer("parent_folder_id"),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -32,6 +33,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertFolderSchema = createInsertSchema(folders).pick({
   name: true,
+  parentFolderId: true,
+}).extend({
+  parentFolderId: z.number().optional(),
 });
 
 export const insertFileSchema = createInsertSchema(files).pick({

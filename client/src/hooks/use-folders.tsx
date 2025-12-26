@@ -3,14 +3,15 @@ import { api } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 import { type InsertFolder } from "@shared/schema";
 
-export function useFolders() {
+export function useFolders(parentFolderId?: number) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: folders, isLoading } = useQuery({
-    queryKey: [api.folders.list.path],
+    queryKey: [api.folders.list.path, parentFolderId],
     queryFn: async () => {
-      const res = await fetch(api.folders.list.path);
+      const url = parentFolderId ? `${api.folders.list.path}?parentFolderId=${parentFolderId}` : api.folders.list.path;
+      const res = await fetch(url);
       if (res.status === 401) return [];
       if (!res.ok) throw new Error("Failed to fetch folders");
       return res.json();

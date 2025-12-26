@@ -69,7 +69,10 @@ export function FileManager() {
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      createFolder({ name: newFolderName }, {
+      createFolder({ 
+        name: newFolderName,
+        parentFolderId: currentFolderId || undefined
+      }, {
         onSuccess: () => {
           setNewFolderName("");
           setIsCreateFolderOpen(false);
@@ -134,7 +137,9 @@ export function FileManager() {
     ? files?.filter(f => f.folderId === currentFolderId) || []
     : files?.filter(f => !f.folderId) || [];
 
-  const foldersDisplay = folders || [];
+  const foldersDisplay = currentFolderId
+    ? (folders?.filter(f => f.parentFolderId === currentFolderId) || [])
+    : (folders?.filter(f => !f.parentFolderId) || []);
 
   const getFilePath = (file: typeof files[0]) => {
     if (file.folderId && folders) {
