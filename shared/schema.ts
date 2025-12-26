@@ -1,50 +1,21 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Validation schemas
+export const insertUserSchema = z.object({
+  username: z.string().min(3).max(20),
+  password: z.string().min(6),
 });
 
-export const folders = pgTable("folders", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  parentFolderId: integer("parent_folder_id"),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+export const insertFolderSchema = z.object({
+  name: z.string().min(1),
+  parentFolderId: z.string().optional(),
 });
 
-export const files = pgTable("files", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  folderId: integer("folder_id"),
-  filename: text("filename").notNull(),
-  content: text("content").notNull(),
-  mimeType: text("mime_type").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export const insertFolderSchema = createInsertSchema(folders).pick({
-  name: true,
-  parentFolderId: true,
-}).extend({
-  parentFolderId: z.number().optional(),
-});
-
-export const insertFileSchema = createInsertSchema(files).pick({
-  filename: true,
-  content: true,
-  mimeType: true,
-  folderId: true,
-}).extend({
-  folderId: z.number().optional(),
+export const insertFileSchema = z.object({
+  filename: z.string().min(1),
+  content: z.string(),
+  mimeType: z.string(),
+  folderId: z.string().optional(),
 });
 
 export const updateFileSchema = z.object({
@@ -62,12 +33,35 @@ export const changeUsernameSchema = z.object({
   newUsername: z.string().min(3).max(20),
 });
 
-export type User = typeof users.$inferSelect;
+// Type definitions for MongoDB documents
+export type User = {
+  _id: string;
+  username: string;
+  password: string;
+};
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type File = typeof files.$inferSelect;
-export type InsertFile = z.infer<typeof insertFileSchema>;
-export type UpdateFile = z.infer<typeof updateFileSchema>;
-export type Folder = typeof folders.$inferSelect;
+
+export type Folder = {
+  _id: string;
+  userId: string;
+  name: string;
+  parentFolderId?: string;
+  createdAt: Date;
+};
+
 export type InsertFolder = z.infer<typeof insertFolderSchema>;
 
+export type File = {
+  _id: string;
+  userId: string;
+  folderId?: string;
+  filename: string;
+  content: string;
+  mimeType: string;
+  createdAt: Date;
+};
+
+export type InsertFile = z.infer<typeof insertFileSchema>;
+export type UpdateFile = z.infer<typeof updateFileSchema>;
 export type FileResponse = Omit<File, "content">;

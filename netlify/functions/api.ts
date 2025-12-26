@@ -4,7 +4,7 @@ import { hashPassword, comparePasswords, createToken, verifyToken } from "../../
 import { api } from "../../shared/routes";
 import { z } from "zod";
 
-const getAuth = (event: any): { id: number; username: string } | null => {
+const getAuth = (event: any): { id: string; username: string } | null => {
   const auth = event.headers.authorization;
   if (!auth?.startsWith("Bearer ")) return null;
   return verifyToken(auth.slice(7));

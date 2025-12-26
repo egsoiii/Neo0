@@ -16,7 +16,7 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const input = api.account.changePassword.input.parse(req.body);
-      const user = await storage.getUser(req.user!.id);
+      const user = await storage.getUser(req.user!._id);
       if (!user) return res.sendStatus(401);
 
       // Verify current password
@@ -26,7 +26,7 @@ export async function registerRoutes(
       }
 
       const hashedPassword = await hashPassword(input.newPassword);
-      await storage.updateUserPassword(user.id, hashedPassword);
+      await storage.updateUserPassword(user._id, hashedPassword);
       res.json({ message: "Password changed successfully" });
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -45,7 +45,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Username already taken" });
       }
 
-      const updatedUser = await storage.updateUserUsername(req.user!.id, input.newUsername);
+      const updatedUser = await storage.updateUserUsername(req.user!._id, input.newUsername);
       res.json(updatedUser);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -58,7 +58,7 @@ export async function registerRoutes(
   // === Folder Management ===
   app.get(api.folders.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const userFolders = await storage.getFolders(req.user!.id);
+    const userFolders = await storage.getFolders(req.user!._id);
     res.json(userFolders);
   });
 
@@ -66,7 +66,7 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const input = api.folders.create.input.parse(req.body);
-      const folder = await storage.createFolder(req.user!.id, input);
+      const folder = await storage.createFolder(req.user!._id, input);
       res.status(201).json(folder);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -80,8 +80,8 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const input = api.folders.rename.input.parse(req.body);
-      const folderId = parseInt(req.params.id);
-      const folder = await storage.renameFolder(folderId, req.user!.id, input.name);
+      const folderId = req.params.id;
+      const folder = await storage.renameFolder(folderId, req.user!._id, input.name);
       res.json(folder);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -93,22 +93,22 @@ export async function registerRoutes(
 
   app.delete(api.folders.delete.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const folderId = parseInt(req.params.id);
-    await storage.deleteFolder(folderId, req.user!.id);
+    const folderId = req.params.id;
+    await storage.deleteFolder(folderId, req.user!._id);
     res.sendStatus(204);
   });
 
   // === File Management ===
   app.get(api.files.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const userFiles = await storage.getFiles(req.user!.id);
+    const userFiles = await storage.getFiles(req.user!._id);
     res.json(userFiles);
   });
 
   app.get(api.files.get.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const fileId = parseInt(req.params.id);
-    const file = await storage.getFile(fileId, req.user!.id);
+    const fileId = req.params.id;
+    const file = await storage.getFile(fileId, req.user!._id);
     if (!file) return res.sendStatus(404);
     res.json(file);
   });
@@ -120,7 +120,7 @@ export async function registerRoutes(
       if (input.filename.includes("/") || input.filename.includes("..")) {
         return res.status(400).json({ message: "Invalid filename" });
       }
-      const file = await storage.createFile(req.user!.id, input);
+      const file = await storage.createFile(req.user!._id, input);
       res.status(201).json(file);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -133,14 +133,14 @@ export async function registerRoutes(
   app.put(api.files.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const fileId = parseInt(req.params.id);
+      const fileId = req.params.id;
       const input = api.files.update.input.parse(req.body);
       
       if (input.filename && (input.filename.includes("/") || input.filename.includes(".."))) {
         return res.status(400).json({ message: "Invalid filename" });
       }
 
-      const file = await storage.updateFile(fileId, req.user!.id, input);
+      const file = await storage.updateFile(fileId, req.user!._id, input);
       res.json(file);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -152,8 +152,8 @@ export async function registerRoutes(
 
   app.delete(api.files.delete.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const fileId = parseInt(req.params.id);
-    await storage.deleteFile(fileId, req.user!.id);
+    const fileId = req.params.id;
+    await storage.deleteFile(fileId, req.user!._id);
     res.sendStatus(204);
   });
 
@@ -165,7 +165,7 @@ export async function registerRoutes(
     const user = await storage.getUserByUsername(username);
     if (!user) return next();
 
-    const file = await storage.getFileByFolderAndPath(user.id, folder, filename);
+    const file = await storage.getFileByFolderAndPath(user._id, folder, filename);
     if (!file) return next();
 
     res.setHeader("Content-Type", file.mimeType);
@@ -179,7 +179,7 @@ export async function registerRoutes(
     const user = await storage.getUserByUsername(username);
     if (!user) return next();
 
-    const file = await storage.getFileByPath(user.id, filename);
+    const file = await storage.getFileByPath(user._id, filename);
     if (!file) return next();
 
     res.setHeader("Content-Type", file.mimeType);
@@ -193,7 +193,7 @@ export async function registerRoutes(
     const user = await storage.getUserByUsername(username);
     if (!user) return next();
 
-    const file = await storage.getFileByPath(user.id, "index.html");
+    const file = await storage.getFileByPath(user._id, "index.html");
     if (!file) return next();
 
     res.setHeader("Content-Type", "text/html");

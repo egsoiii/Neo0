@@ -13,7 +13,7 @@ export const handler: Handler = async (event) => {
       const user = await storage.getUserByUsername(username);
       if (!user) return { statusCode: 404, body: "Not found" };
       
-      const file = await storage.getFileByPath(user.id, filename);
+      const file = await storage.getFileByPath(user._id, filename);
       if (!file) return { statusCode: 404, body: "Not found" };
       
       return {
@@ -27,7 +27,7 @@ export const handler: Handler = async (event) => {
       const user = await storage.getUserByUsername(username);
       if (!user) return { statusCode: 404, body: "Not found" };
       
-      const file = await storage.getFileByFolderAndPath(user.id, folder, filename);
+      const file = await storage.getFileByFolderAndPath(user._id, folder, filename);
       if (!file) return { statusCode: 404, body: "Not found" };
       
       return {
@@ -41,7 +41,7 @@ export const handler: Handler = async (event) => {
       const user = await storage.getUserByUsername(username);
       if (!user) return { statusCode: 404, body: "Not found" };
       
-      const file = await storage.getFileByPath(user.id, "index.html");
+      const file = await storage.getFileByPath(user._id, "index.html");
       if (!file) return { statusCode: 404, body: "Not found" };
       
       return {
