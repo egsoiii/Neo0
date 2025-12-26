@@ -1,0 +1,34 @@
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+[dev]
+  command = "npm run dev"
+  port = 5000
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api:splat"
+  status = 200
+
+[[redirects]]
+  from = "/:username/:folder/:filename"
+  to = "/.netlify/functions/file:splat"
+  status = 200
+
+[[redirects]]
+  from = "/:username/:filename"
+  to = "/.netlify/functions/file:splat"
+  status = 200
+
+[[redirects]]
+  from = "/:username"
+  to = "/.netlify/functions/file:splat"
+  status = 200
+
+# SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
